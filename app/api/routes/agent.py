@@ -1,86 +1,27 @@
-from fastapi import APIRouter, HTTPException, Depends
-from sqlalchemy.exc import SQLAlchemyError, ProgrammingError
-from openai import OpenAI
+from fastapi import APIRouter, HTTPException
 from app.schemas.agent import AgentQuery
-from app.core.config import Settings
+from app.agents.assistant_client import get_sql_from_natural_language
+from app.services.sql_runner import run_raw_sql
 
 router = APIRouter()
 
-def get_settings():
-    return Settings()
-
-def get_openai_client(settings: Settings = Depends(get_settings)):
-    return OpenAI(api_key=settings.OPENAI_API_KEY)
 
 @router.post("/query")
-async def query_agent(
-    payload: AgentQuery,
-    openai_client: OpenAI = Depends(get_openai_client),
-    settings: Settings = Depends(get_settings)
-):
-    """
-    Handle natural language queries and convert them to SQL using OpenAI.
-    Provides helpful suggestions when SQL syntax errors occur.
-    """
-    try:
-        # If we have a thread_id, use it, otherwise create a new thread
-        thread_id = payload.thread_id
-        if not thread_id:
-            thread = openai_client.beta.threads.create()
-            thread_id = thread.id
+def query_agent(payload: AgentQuery):
+    response = get_sql_from_natural_language(payload.message, payload.thread_id)
+    if "error" in response:
+        raise HTTPException(status_code=500, detail=response["error"])
 
-        # Add the user's message to the thread
-        message = openai_client.beta.threads.messages.create(
-            thread_id=thread_id,
-            role="user",
-            content=payload.message
-        )
+    sql = response.get("sql")
+    thread_id = response.get("thread_id")
 
-        # Run the assistant
-        run = openai_client.beta.threads.runs.create(
-            thread_id=thread_id,
-            assistant_id=settings.OPENAI_ASSISTANT_ID
-        )
-
-        # Get the assistant's response
-        messages = openai_client.beta.threads.messages.list(thread_id=thread_id)
-        
-        # Return the response and thread_id for continuation
+    result = run_raw_sql(sql)
+    if result and "error" in result[0]:
         return {
-            "message": messages.data[0].content[0].text.value,
+            "error": result[0]["error"],
+            "hint": "Please check your table name or SQL syntax.",
+            "example": "SELECT COUNT(*) FROM users WHERE role = 'admin';",
             "thread_id": thread_id,
-            "status": "success"
         }
 
-    except ProgrammingError as e:
-        # Handle SQL syntax errors
-        error_message = str(e)
-        suggestion = None
-        
-        if "how many" in payload.message.lower():
-            suggestion = {
-                "sql": "SELECT COUNT(*) FROM users WHERE role = 'admin'",
-                "explanation": "This will count the number of users with admin role"
-            }
-        
-        return {
-            "error": "SQL Syntax Error",
-            "message": error_message,
-            "suggestion": suggestion,
-            "documentation": "https://www.postgresql.org/docs/current/tutorial-sql.html"
-        }
-        
-    except SQLAlchemyError as e:
-        # Handle other SQL-related errors
-        return {
-            "error": "Database Error",
-            "message": str(e),
-            "status": "error"
-        }
-        
-    except Exception as e:
-        # Handle any other unexpected errors
-        raise HTTPException(
-            status_code=500,
-            detail=f"An unexpected error occurred: {str(e)}"
-        )
+    return {"result": result, "thread_id": thread_id, "sql": sql}
