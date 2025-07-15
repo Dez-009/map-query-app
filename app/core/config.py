@@ -1,5 +1,8 @@
 import os
-from pydantic import BaseSettings
+try:
+    from pydantic_settings import BaseSettings
+except ImportError:  # pragma: no cover - fallback for pydantic v1
+    from pydantic import BaseSettings
 from functools import lru_cache
 
 
