@@ -1,9 +1,8 @@
-import os
 import psycopg2
 import psycopg2.extras
-from dotenv import load_dotenv
+from app.core.config import get_settings
 
-load_dotenv()
+settings = get_settings()
 
 
 def run_raw_sql(query: str) -> list[dict]:
@@ -11,11 +10,11 @@ def run_raw_sql(query: str) -> list[dict]:
     conn = None
     try:
         conn = psycopg2.connect(
-            host=os.getenv("DB_HOST"),
-            database=os.getenv("DB_NAME"),
-            user=os.getenv("DB_USER"),
-            password=os.getenv("DB_PASSWORD"),
-            port=os.getenv("DB_PORT", 5432),
+            host=settings.DB_HOST,
+            database=settings.DB_NAME,
+            user=settings.DB_USER,
+            password=settings.DB_PASSWORD,
+            port=settings.DB_PORT,
         )
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
             cur.execute(query)
