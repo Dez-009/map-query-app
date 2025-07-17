@@ -31,7 +31,12 @@ migrations/    # Alembic migration scripts
    git clone <repo-url>
    cd map-query-app
    ```
-2. **Create the `.env` file** (already provided) with database settings.
+2. **Create the `.env` file** from template:
+   ```bash
+   cp .env.example .env
+   ```
+   Then edit `.env` to add your OpenAI credentials.
+
 3. **Start the stack** using Docker Compose:
    ```bash
    docker compose up --build
