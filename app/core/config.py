@@ -17,8 +17,8 @@ class Settings(BaseSettings):
         return f"postgresql://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
     
     # OpenAI settings
-    OPENAI_API_KEY: str
-    OPENAI_ASSISTANT_ID: str  # ID of the SQL-specialized assistant
+    OPENAI_API_KEY: str = "dummy"
+    OPENAI_ASSISTANT_ID: str = "dummy"  # ID of the SQL-specialized assistant
     OPENAI_REQUEST_TIMEOUT: int = 120  # Timeout for OpenAI API requests in seconds (2 minutes)
     OPENAI_MAX_RETRIES: int = 5  # Maximum number of retries for OpenAI API calls
 
