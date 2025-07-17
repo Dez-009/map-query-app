@@ -5,3 +5,4 @@ alembic
 pytest
 pydantic-settings
 openai
+psycopg2-binary
