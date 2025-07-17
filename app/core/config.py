@@ -3,14 +3,9 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    # Database settings
-    DB_HOST: str = "localhost"
-    DB_PORT: str = "5432"
-    DB_NAME: str = "mapquery"
-    DB_USER: str = "postgres"
-    DB_PASSWORD: str = "postgres"
-    DB_URL: str = "postgresql://postgres:postgres@db:5432/mapquery"
-    
+    # Use a single DB_URL for flexibility and SQLite fallback
+    DB_URL: str = "sqlite:///./mapquery.db"
+
     # OpenAI settings
     OPENAI_API_KEY: str
     OPENAI_ASSISTANT_ID: str  # ID of the SQL-specialized assistant
