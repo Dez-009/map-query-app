@@ -23,8 +23,11 @@ def upgrade() -> None:
         sa.Column('unit_count', sa.Integer, nullable=False),
     )
 
+    # Ensure the enum type exists without failing if already created
+    op.execute(
+        "CREATE TYPE IF NOT EXISTS unitsize AS ENUM ('STUDIO', '1BR', '2BR', '3BR')"
+    )
     unitsize = sa.Enum('STUDIO', '1BR', '2BR', '3BR', name='unitsize')
-    unitsize.create(op.get_bind(), checkfirst=True)
 
     op.create_table(
         'apartment_units',
@@ -47,8 +50,10 @@ def upgrade() -> None:
         sa.Column('unit_id', sa.Integer, sa.ForeignKey('apartment_units.id'), nullable=False),
     )
 
+    op.execute(
+        "CREATE TYPE IF NOT EXISTS paymentstatus AS ENUM ('ON_TIME', 'LATE', 'OUTSTANDING')"
+    )
     paymentstatus = sa.Enum('ON_TIME', 'LATE', 'OUTSTANDING', name='paymentstatus')
-    paymentstatus.create(op.get_bind(), checkfirst=True)
 
     op.create_table(
         'payments',
@@ -59,8 +64,10 @@ def upgrade() -> None:
         sa.Column('resident_id', sa.Integer, sa.ForeignKey('residents.id'), nullable=False),
     )
 
+    op.execute(
+        "CREATE TYPE IF NOT EXISTS repairstatus AS ENUM ('NEW', 'IN_PROGRESS', 'DONE')"
+    )
     repairstatus = sa.Enum('NEW', 'IN_PROGRESS', 'DONE', name='repairstatus')
-    repairstatus.create(op.get_bind(), checkfirst=True)
 
     op.create_table(
         'repairs',
