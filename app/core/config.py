@@ -25,3 +25,17 @@ class Settings(BaseSettings):
 @lru_cache()
 def get_settings() -> Settings:
     return Settings()
+
+
+if __name__ == "__main__":
+    from dotenv import load_dotenv
+    load_dotenv()
+    settings = get_settings()
+    print("✅ Loaded settings:")
+    print(f"DB_HOST = {settings.DB_HOST}")
+    print(f"DB_PORT = {settings.DB_PORT}")
+    print(f"DB_NAME = {settings.DB_NAME}")
+    print(f"DB_USER = {settings.DB_USER}")
+    print(f"DB_PASSWORD = {settings.DB_PASSWORD}")
+    print(f"OPENAI_API_KEY = {settings.OPENAI_API_KEY[:10]}...")
+    print(f"OPENAI_ASSISTANT_ID = {settings.OPENAI_ASSISTANT_ID}")
