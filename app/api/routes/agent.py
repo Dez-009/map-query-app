@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException
 from app.schemas.agent import AgentQuery
 from app.agents.assistant_client import get_sql_from_natural_language
 from app.services.sql_runner import run_raw_sql
+from app.services.response_formatter import format_natural_language_response
 
 router = APIRouter()
 
@@ -44,4 +45,10 @@ def query_agent(payload: AgentQuery):
             "thread_id": thread_id,
         }
 
-    return {"result": result, "thread_id": thread_id, "sql": sql}
+    natural = format_natural_language_response(payload.message, result)
+    return {
+        "natural_response": natural,
+        "thread_id": thread_id,
+        "sql": sql,
+        "raw_result": result,
+    }
